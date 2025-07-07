@@ -6,17 +6,17 @@ import re
 from dotenv import load_dotenv
 from openai import OpenAI
 
-# Load environment variables from .env
+# 환경변수 불러오기
 load_dotenv()
-
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 WP_USERNAME = os.getenv("WP_USERNAME")
 WP_PASSWORD = os.getenv("WP_PASSWORD")
 WP_URL = os.getenv("WP_URL")
 
+# OpenAI 클라이언트 초기화
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-# 주제 리스트
+# 주제 목록
 topics = {
     "diet": [
         "One-Week Meal Plan to Lower Blood Sugar",
@@ -45,62 +45,5 @@ topics = {
     ]
 }
 
-# 카테고리 ID 매핑
-categories = {
-    "diet": 2,
-    "foods": 3,
-    "tips": 4,
-    "tools": 5,
-    "myths": 6
-}
-
-def choose_topic():
-    category = random.choice(list(topics.keys()))
-    topic = random.choice(topics[category])
-    return category, topic
-
-def generate_post(topic):
-    print(f"[{datetime.datetime.now()}] Generating post: {topic}")
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": "You are a professional health blogger."},
-            {"role": "user", "content": f"Write a 600-word SEO-optimized blog post about: {topic}"}
-        ],
-        temperature=0.7,
-        max_tokens=800
-    )
-    return response.choices[0].message.content.strip()
-
-def sanitize_content(content):
-    # 위험한 HTML 태그 제거
-    content = re.sub(r'<script.*?>.*?</script>', '', content, flags=re.DOTALL)
-    content = re.sub(r'<(iframe|embed|object).*?>.*?</\1>', '', content, flags=re.DOTALL)
-    return content
-
-def post_to_wordpress(title, content, category_id):
-    url = f"{WP_URL}/wp-json/wp/v2/posts"
-    auth = (WP_USERNAME, WP_PASSWORD)
-    headers = {
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0"
-    }
-    data = {
-        "title": title,
-        "content": content,
-        "status": "publish",
-        "categories": [category_id]
-    }
-    response = requests.post(url, auth=auth, headers=headers, json=data)
-    print(f"[{datetime.datetime.now()}] Posted to WordPress: {response.status_code}")
-    if response.status_code != 201:
-        print("Error response:", response.text)
-
-def main():
-    category, topic = choose_topic()
-    raw_content = generate_post(topic)
-    clean_content = sanitize_content(raw_content)
-    post_to_wordpress(topic, clean_content, categories[category])
-
-if __name__ == "__main__":
-    main()
+# 워드프레스 카테고리 ID
+categ
