@@ -73,7 +73,7 @@ def generate_post(topic):
     return response.choices[0].message.content.strip()
 
 def sanitize_content(content):
-    # 악성 HTML 태그 제거
+    # 위험한 HTML 태그 제거
     content = re.sub(r'<script.*?>.*?</script>', '', content, flags=re.DOTALL)
     content = re.sub(r'<(iframe|embed|object).*?>.*?</\1>', '', content, flags=re.DOTALL)
     return content
