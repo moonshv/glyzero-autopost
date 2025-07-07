@@ -110,19 +110,24 @@ def sanitize_content(content):
     content = re.sub(r'\s{2,}', ' ', content)
     return content.strip()
 
-# 워드프레스 업로드
+# post_to_wordpress 함수 내부를 잠시 이렇게 수정해서 테스트해보세요.
 def post_to_wordpress(title, content, category_id):
     url = f"{WP_URL}/wp-json/wp/v2/posts"
-    auth = (WP_USERNAME, WP_PASSWORD)
+    auth = (WP_USERNAME, os.getenv("WP_APPLICATION_PASSWORD")) # 응용 프로그램 비밀번호 사용
     headers = {
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0",
-        "Accept": "application/json",
-        "Accept-Encoding": "gzip, deflate"
+        "Accept": "application/json"
     }
+
+    # === 테스트용 데이터 ===
+    test_title = "테스트 포스트입니다"
+    test_content = "이 글은 테스트용으로 작성된 안전한 텍스트입니다."
+    # =====================
+
     data = {
-        "title": title,
-        "content": content,
+        "title": test_title, # AI가 생성한 제목 대신 고정된 제목 사용
+        "content": test_content, # AI가 생성한 내용 대신 고정된 내용 사용
         "status": "publish",
         "categories": [category_id]
     }
