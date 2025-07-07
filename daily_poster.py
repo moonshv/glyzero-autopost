@@ -76,12 +76,29 @@ def generate_post(topic):
 
 # 콘텐츠 필터링 (406 오류 회피 목적)
 def sanitize_content(content):
-    content = re.sub(r'<script.*?>.*?</script>', '', content, flags=re.DOTALL)
-    content = re.sub(r'<(iframe|embed|object).*?>.*?</\1>', '', content, flags=re.DOTALL)
-    content = re.sub(r'<.*?>', '', content)  # 모든 HTML 태그 제거
+    import re
+
+    # HTML 태그 제거
+    content = re.sub(r'<[^>]+>', '', content)
+
+    # 마크다운 스타일 제거
+    content = re.sub(r'\*\*(.*?)\*\*', r'\1', content)  # **bold**
+    content = re.sub(r'__(.*?)__', r'\1', content)
+    content = re.sub(r'~~(.*?)~~', r'\1', content)
+    content = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', content)  # [text](link)
+
+    # HTML 엔티티 제거
+    content = re.sub(r'&[a-z]+;', '', content)
+
+    # 자바스크립트 관련 단어 제거
     content = re.sub(r'javascript:', '', content, flags=re.IGNORECASE)
     content = re.sub(r'on\w+=".*?"', '', content)
+
+    # 너무 길거나 의심스러운 문자열 제거 (선택)
+    content = re.sub(r'[<>]', '', content)
+
     return content
+
 
 # 워드프레스 업로드
 def post_to_wordpress(title, content, category_id):
