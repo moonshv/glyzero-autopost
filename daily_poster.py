@@ -1,12 +1,12 @@
-
 import os
 import requests
 import random
 import datetime
+import re
 from dotenv import load_dotenv
 from openai import OpenAI
 
-# Load environment variables
+# Load environment variables from .env
 load_dotenv()
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -16,6 +16,7 @@ WP_URL = os.getenv("WP_URL")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
+# 주제 리스트
 topics = {
     "diet": [
         "One-Week Meal Plan to Lower Blood Sugar",
@@ -44,6 +45,7 @@ topics = {
     ]
 }
 
+# 카테고리 ID 매핑
 categories = {
     "diet": 2,
     "foods": 3,
@@ -70,24 +72,35 @@ def generate_post(topic):
     )
     return response.choices[0].message.content.strip()
 
+def sanitize_content(content):
+    # 악성 HTML 태그 제거
+    content = re.sub(r'<script.*?>.*?</script>', '', content, flags=re.DOTALL)
+    content = re.sub(r'<(iframe|embed|object).*?>.*?</\1>', '', content, flags=re.DOTALL)
+    return content
+
 def post_to_wordpress(title, content, category_id):
     url = f"{WP_URL}/wp-json/wp/v2/posts"
     auth = (WP_USERNAME, WP_PASSWORD)
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0"
+    }
     data = {
         "title": title,
         "content": content,
         "status": "publish",
         "categories": [category_id]
     }
-    response = requests.post(url, auth=auth, json=data)
+    response = requests.post(url, auth=auth, headers=headers, json=data)
     print(f"[{datetime.datetime.now()}] Posted to WordPress: {response.status_code}")
     if response.status_code != 201:
         print("Error response:", response.text)
 
 def main():
     category, topic = choose_topic()
-    content = generate_post(topic)
-    post_to_wordpress(topic, content, categories[category])
+    raw_content = generate_post(topic)
+    clean_content = sanitize_content(raw_content)
+    post_to_wordpress(topic, clean_content, categories[category])
 
 if __name__ == "__main__":
     main()
