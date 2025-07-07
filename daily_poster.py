@@ -116,8 +116,5 @@ def main():
     print("\n===========================\n")
     
     post_to_wordpress(topic, clean_content, categories[category])
-    
-    post_to_wordpress(topic, clean_content, categories[category])
-
 if __name__ == "__main__":
     main()
